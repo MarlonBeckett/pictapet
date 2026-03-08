@@ -1,4 +1,4 @@
-import { StyleTheme } from "@/types";
+import { StyleTheme, SubRole } from "@/types";
 
 export interface SiteTheme {
   id: StyleTheme;
@@ -30,8 +30,11 @@ export interface SiteTheme {
     resultLabel: string;
     resultHeading: string;
   };
-  // AI prompt template
+  // AI prompt template (default, used when no sub-role selected)
   promptTemplate: string;
+  // Sub-roles
+  subRoles: SubRole[];
+  subRolePrompts: Record<string, string>;
 }
 
 export const THEMES: Record<StyleTheme, SiteTheme> = {
@@ -62,7 +65,23 @@ export const THEMES: Record<StyleTheme, SiteTheme> = {
       resultHeading: "A True Frontier Legend",
     },
     promptTemplate:
-      "A rugged portrait of a {species} ({breed}) with {coloring} fur, dressed as a cowboy wearing a weathered brown leather cowboy hat, a bandana around the neck, a fringed leather vest over a plaid shirt, and a sheriff's badge. The pet has {expression} and {distinguishingFeatures}. Wild West desert landscape background with cacti and sunset, cinematic western movie style with warm dusty golden light.",
+      "A rugged portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The animal is sitting upright on its haunches on dusty desert ground, facing the viewer in a vertical portrait composition framed from chest level up. Dressed as a cowboy wearing a weathered brown leather cowboy hat, a red bandana tied around the neck, a fringed leather vest over a plaid shirt, and a sheriff's badge pinned to the vest. The pet has {expression} and {distinguishingFeatures}. Wild West desert landscape background with saguaro cacti, red rock mesas, and a warm golden sunset sky. Classical western oil painting style with visible brushstrokes, rich warm dusty golden light, and painterly textures.",
+    subRoles: [
+      { id: "cowboy", name: "Cowboy", emoji: "🤠", description: "Classic frontier wrangler", generateButton: "Yeehaw! Generate" },
+      { id: "sheriff", name: "Sheriff", emoji: "⭐", description: "Law of the land", generateButton: "Lay Down the Law!" },
+      { id: "outlaw", name: "Outlaw", emoji: "🏴‍☠️", description: "Wanted dead or alive", generateButton: "Wanted: Generate!" },
+      { id: "saloon-owner", name: "Saloon Owner", emoji: "🥃", description: "Keeper of the bar", generateButton: "Pour One Out!" },
+    ],
+    subRolePrompts: {
+      cowboy:
+        "A rugged portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The animal is sitting upright on its haunches on dusty desert ground, facing the viewer in a vertical portrait composition framed from chest level up. Dressed as a cowboy wearing a weathered brown leather cowboy hat, a red bandana tied around the neck, a fringed leather vest over a plaid shirt, and a sheriff's badge pinned to the vest. The pet has {expression} and {distinguishingFeatures}. Wild West desert landscape background with saguaro cacti, red rock mesas, and a warm golden sunset sky. Classical western oil painting style with visible brushstrokes, rich warm dusty golden light, and painterly textures.",
+      sheriff:
+        "A commanding portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Dressed as a frontier sheriff wearing a polished silver sheriff star badge prominently on the chest, a long brown leather duster coat, a wide-brimmed hat, and a revolver holster on the hip. The pet has {expression} and {distinguishingFeatures}. Standing at the entrance of a dusty Old West town with wooden storefronts and a setting sun. Classical western oil painting style with visible brushstrokes, rich warm dusty golden light, and painterly textures.",
+      outlaw:
+        "A gritty portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Dressed as a notorious outlaw with a dusty bandana mask pulled up around the neck, a battered wide-brim hat, a worn leather duster with bullet holes, rugged chaps, and a wanted poster partially visible behind them. The pet has {expression} and {distinguishingFeatures}. Rocky desert canyon hideout background with dramatic shadows and dusty golden light. Classical western oil painting style with visible brushstrokes, rich warm tones, and painterly textures.",
+      "saloon-owner":
+        "An elegant portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Dressed as a refined saloon owner wearing a fancy embroidered vest with a silk back, a crisp bow tie, rolled-up white sleeves, and a gold pocket watch chain. The pet has {expression} and {distinguishingFeatures}. Warm saloon interior backdrop with polished wooden bar, hanging oil lamps, whiskey bottles, and card tables. Classical western oil painting style with visible brushstrokes, rich warm amber light, and painterly textures.",
+    },
   },
   royal: {
     id: "royal",
@@ -83,7 +102,7 @@ export const THEMES: Record<StyleTheme, SiteTheme> = {
     copy: {
       heroLabel: "PictaPet Kingdom",
       heroHeading: 'Your Royal<br /><em>Highness</em>',
-      heroSubtext: "Crown your pet as the royalty they truly are. Velvet robes, golden thrones, and jeweled crowns.",
+      heroSubtext: "Crown your pet as the royalty they truly are. Velvet robes, jeweled collars, and pampered elegance.",
       uploadLabel: "Present your noble subject",
       generateButton: "Crown Them",
       loadingSteps: ["Summoning the court painter", "Draping the royal robes", "Polishing the crown"],
@@ -91,181 +110,74 @@ export const THEMES: Record<StyleTheme, SiteTheme> = {
       resultHeading: "Long Live the Ruler",
     },
     promptTemplate:
-      "A majestic portrait of a {species} ({breed}) with {coloring} fur, dressed as a royal king or queen wearing an ornate golden crown encrusted with jewels, a luxurious velvet ermine-trimmed robe in deep crimson and gold, seated on an elaborate golden throne. The pet has {expression} and {distinguishingFeatures}. Renaissance oil painting style, dramatic Rembrandt lighting, rich warm tones, detailed fabric textures, ornate gilded frame feeling.",
-  },
-  knight: {
-    id: "knight",
-    name: "Fortress",
-    tagline: "Brave knights in shining armor",
-    emoji: "⚔️",
-    colors: {
-      bg: "#14161a",
-      bgAlt: "#1e2228",
-      border: "#3a3e48",
-      text: "#e8e6e0",
-      textMuted: "#8a8d95",
-      accent: "#7a9bb5",
-      accentLight: "#99b5cc",
-      error: "#c45c4a",
+      "A majestic portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. A pampered royal pet wearing a luxurious ermine-trimmed velvet robe in deep emerald green with gold leaf embroidery, an ornate jeweled collar with gemstones, perched elegantly on a plush embroidered cushion. The pet has {expression} and {distinguishingFeatures}. Soft golden countryside or palace garden visible in the background. Renaissance oil painting style, dramatic Rembrandt lighting, rich warm tones, detailed fabric textures, no frame or border around the image.",
+    subRoles: [
+      { id: "king", name: "King", emoji: "👑", description: "Ruler of the realm", generateButton: "Crown Them" },
+      { id: "queen", name: "Queen", emoji: "👸", description: "Graceful sovereign", generateButton: "Crown Them" },
+      { id: "knight", name: "Knight", emoji: "⚔️", description: "Sworn protector", generateButton: "Charge Forth!" },
+      { id: "jester", name: "Jester", emoji: "🃏", description: "Court entertainer", generateButton: "Jest Away!" },
+      { id: "blacksmith", name: "Blacksmith", emoji: "⚒️", description: "Master of the forge", generateButton: "Forge Ahead!" },
+    ],
+    subRolePrompts: {
+      king:
+        "A majestic portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. A pampered royal pet wearing a small ornate golden crown encrusted with rubies and sapphires, a luxurious crimson ermine-trimmed robe with gold embroidery draped over its body, and a heavy jeweled collar with a royal crest medallion, posed elegantly on a rich velvet cushion with gold tassels. The pet has {expression} and {distinguishingFeatures}. Lush palace garden with manicured hedges, marble columns, and soft golden afternoon light. Renaissance oil painting style, dramatic Rembrandt lighting, rich warm tones, detailed fabric textures, no frame or border around the image.",
+      queen:
+        "An elegant portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. A pampered royal pet wearing a delicate jeweled tiara with diamonds and pearls, an elegant flowing cape in royal purple and silver with lace trim draped over its body, and a dainty pearl necklace collar, resting gracefully on a silk-covered chaise with rose petals scattered nearby. The pet has {expression} and {distinguishingFeatures}. Lavish palace chamber with roses, silk curtains, and soft golden candlelight. Renaissance oil painting style, soft luminous lighting, rich warm tones, detailed fabric textures, no frame or border around the image.",
+      knight:
+        "An epic portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. A noble pampered pet wearing a small polished silver chest plate with intricate engravings draped over its body, a crimson cape flowing behind, and a chainmail collar, posed heroically with a gleaming sword resting beside it. The pet has {expression} and {distinguishingFeatures}. Medieval castle courtyard background with banners and dramatic sunset lighting. Renaissance oil painting style, heroic composition, rich warm tones, detailed metalwork textures, no frame or border around the image.",
+      jester:
+        "A whimsical portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. A playful pampered pet wearing a colorful motley cape in diamond patterns of red, gold, green, and purple draped over its body, a jingling three-pointed jester hat with bells on each tip, and a collar with tiny golden bells, sitting cheerfully on a patchwork velvet cushion. The pet has {expression} and {distinguishingFeatures}. Castle great hall background with checkered marble floors and warm candlelight. Renaissance oil painting style, warm cheerful lighting, vibrant colors, detailed fabric textures, no frame or border around the image.",
+      blacksmith:
+        "A powerful portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. A sturdy pampered pet wearing a small thick leather apron draped over its chest, a studded iron collar, posed beside a blazing forge with glowing orange-hot metal on a heavy iron anvil, tongs and hammers nearby. The pet has {expression} and {distinguishingFeatures}. Stone workshop interior with firelight, sparks, and hanging horseshoes. Renaissance oil painting style, dramatic forge lighting with orange and amber glow, rich warm tones, detailed textures, no frame or border around the image.",
     },
-    displayFont: "'MedievalSharp', cursive",
-    copy: {
-      heroLabel: "PictaPet Fortress",
-      heroHeading: 'Rise,<br /><em>Noble Beast</em>',
-      heroSubtext: "Forge your pet in steel and honor. Castle walls, gleaming swords, and billowing capes.",
-      uploadLabel: "Present your squire",
-      generateButton: "Forge the Portrait",
-      loadingSteps: ["Heating the forge", "Hammering the armor", "Raising the banner"],
-      resultLabel: "A knight to remember",
-      resultHeading: "Hail the Champion",
-    },
-    promptTemplate:
-      "An epic portrait of a {species} ({breed}) with {coloring} fur, dressed as a medieval knight wearing polished silver plate armor with intricate engravings, a crimson cape billowing behind, holding a gleaming sword. The pet has {expression} and {distinguishingFeatures}. Medieval castle courtyard background, dramatic sunset lighting, oil painting style with rich detail and heroic composition.",
   },
-  astronaut: {
-    id: "astronaut",
-    name: "Mission Control",
-    tagline: "Space explorers among the stars",
-    emoji: "🚀",
+  beach: {
+    id: "beach",
+    name: "Beach Day",
+    tagline: "Sun, sand, and furry good vibes",
+    emoji: "🏖️",
     colors: {
-      bg: "#0a0e18",
-      bgAlt: "#121828",
-      border: "#1e2a42",
-      text: "#e0e8f5",
-      textMuted: "#6880a0",
-      accent: "#00c8e0",
-      accentLight: "#40d8f0",
+      bg: "#0c1e2e",
+      bgAlt: "#132d40",
+      border: "#1e4a66",
+      text: "#f5f0e0",
+      textMuted: "#7eb8d0",
+      accent: "#f0a830",
+      accentLight: "#f5c04a",
       error: "#e05050",
     },
-    displayFont: "'Orbitron', sans-serif",
+    displayFont: "'Pacifico', cursive",
     copy: {
-      heroLabel: "PictaPet Mission Control",
-      heroHeading: 'Ready for<br /><em>Launch</em>',
-      heroSubtext: "Send your pet to the stars. Space suits, nebulae, and zero gravity awaits.",
-      uploadLabel: "Upload crew photo",
-      generateButton: "Initiate Launch",
-      loadingSteps: ["Running pre-flight checks", "Engaging thrusters", "Entering orbit"],
-      resultLabel: "Transmission received",
-      resultHeading: "Mission Accomplished",
+      heroLabel: "PictaPet Beach Day",
+      heroHeading: 'Catch Some<br /><em>Waves</em>',
+      heroSubtext: "Send your pet on the ultimate beach vacation. Surfboards, sunglasses, and sandy paws guaranteed.",
+      uploadLabel: "Drop your beach buddy's photo here",
+      generateButton: "Ride the Wave!",
+      loadingSteps: ["Applying sunscreen", "Waxing the surfboard", "Finding the perfect wave"],
+      resultLabel: "Fresh from the shore",
+      resultHeading: "Life's a Beach",
     },
     promptTemplate:
-      "A stunning portrait of a {species} ({breed}) with {coloring} fur, wearing a detailed NASA-style white space suit with a clear helmet visor, floating in space with Earth visible in the background, stars and nebulae surrounding them. The pet has {expression} and {distinguishingFeatures}. Photorealistic digital art style, dramatic space lighting with blue and purple hues, lens flare effects.",
-  },
-  superhero: {
-    id: "superhero",
-    name: "HQ",
-    tagline: "Caped crusaders saving the day",
-    emoji: "🦸",
-    colors: {
-      bg: "#12080e",
-      bgAlt: "#1e1018",
-      border: "#3a2030",
-      text: "#f5e8e0",
-      textMuted: "#a08088",
-      accent: "#e83040",
-      accentLight: "#f05060",
-      error: "#ff6060",
+      "A vibrant portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The animal is on a sunny tropical beach, facing the viewer in a vertical portrait composition framed from chest level up. Wearing colorful Hawaiian board shorts and stylish sunglasses perched on the head, with a surfboard planted in the sand beside them. The pet has {expression} and {distinguishingFeatures}. Tropical beach background with turquoise ocean waves, white sand, palm trees, and a bright blue sky with puffy clouds. Bright, cheerful digital illustration style with warm golden sunlight, vivid tropical colors, and a fun vacation atmosphere.",
+    subRoles: [
+      { id: "surfer", name: "Surfer", emoji: "🏄", description: "Catching gnarly waves", generateButton: "Ride the Wave!" },
+      { id: "lifeguard", name: "Lifeguard", emoji: "🛟", description: "Guardian of the shore", generateButton: "Save the Day!" },
+      { id: "diver", name: "Scuba Diver", emoji: "🤿", description: "Deep sea explorer", generateButton: "Dive In!" },
+      { id: "pirate", name: "Beach Pirate", emoji: "🏴‍☠️", description: "Treasure hunter of the coast", generateButton: "Plunder Away!" },
+      { id: "hula-dancer", name: "Hula Dancer", emoji: "🌺", description: "Island rhythm master", generateButton: "Aloha! Generate" },
+    ],
+    subRolePrompts: {
+      surfer:
+        "A radical portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Riding a colorful surfboard on a massive turquoise wave, wearing neon board shorts and a puka shell necklace, water spraying dramatically around them. The pet has {expression} and {distinguishingFeatures}. Tropical ocean background with a perfect barrel wave, bright blue sky, and golden sunlight glinting off the water. Bright, energetic digital illustration style with vivid tropical colors, dynamic motion, and warm golden light.",
+      lifeguard:
+        "A heroic portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Dressed as a beach lifeguard sitting in a tall red lifeguard tower chair, wearing a red lifeguard swimsuit, aviator sunglasses, a whistle around the neck, and holding a red rescue buoy. The pet has {expression} and {distinguishingFeatures}. Panoramic beach background with gentle waves, white sand, colorful umbrellas, and a clear blue sky. Bright, cheerful digital illustration style with warm golden afternoon light and vivid coastal colors.",
+      diver:
+        "An adventurous portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Wearing full scuba diving gear including a wetsuit, diving mask on the forehead, an oxygen tank on the back, and flippers, standing on a coral reef underwater surrounded by colorful tropical fish, sea turtles, and swaying anemones. The pet has {expression} and {distinguishingFeatures}. Vibrant underwater scene with sunbeams filtering through crystal-clear turquoise water and a sandy ocean floor. Bright, detailed digital illustration style with luminous aquatic blues and greens, dappled light rays, and vivid coral colors.",
+      pirate:
+        "A swashbuckling portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Dressed as a tropical beach pirate wearing a tattered tricorn hat with a skull and crossbones, an open linen shirt, a leather baldric with a cutlass, an eye patch, and a treasure map tucked under one arm. The pet has {expression} and {distinguishingFeatures}. Sandy cove background with a beached pirate ship, palm trees, a treasure chest overflowing with gold coins, and a sunset sky in fiery orange and pink. Bright, adventurous digital illustration style with warm golden-hour light and rich tropical colors.",
+      "hula-dancer":
+        "A joyful portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Dressed as a hula dancer wearing a green grass skirt, a colorful lei of plumeria and hibiscus flowers around the neck, a flower crown, and coconut shell accessories. The pet has {expression} and {distinguishingFeatures}. Lush Hawaiian beach backdrop with tiki torches, swaying palm trees, a gentle sunset, and soft ocean waves lapping the shore. Bright, festive digital illustration style with warm tropical sunset light, vivid floral colors, and a relaxed island atmosphere.",
     },
-    displayFont: "'Bangers', cursive",
-    copy: {
-      heroLabel: "PictaPet HQ",
-      heroHeading: 'Unleash<br /><em>the Hero</em>',
-      heroSubtext: "Every pet has a superpower. Time to suit up, mask on, cape out.",
-      uploadLabel: "Upload secret identity",
-      generateButton: "Activate Powers",
-      loadingSteps: ["Suiting up", "Calibrating superpowers", "Striking a pose"],
-      resultLabel: "Hero identified",
-      resultHeading: "A Hero Has Risen",
-    },
-    promptTemplate:
-      "A dynamic portrait of a {species} ({breed}) with {coloring} fur, dressed as a superhero wearing a sleek custom-fitted suit in bold blue and red colors, a flowing cape, and a mask. The pet has {expression} and {distinguishingFeatures}. Standing heroically on a rooftop with a city skyline at sunset behind them. Comic book art style with vibrant colors, dynamic pose, dramatic lighting.",
-  },
-  chef: {
-    id: "chef",
-    name: "Kitchen",
-    tagline: "Master chefs with impeccable taste",
-    emoji: "👨‍🍳",
-    colors: {
-      bg: "#18140e",
-      bgAlt: "#241e15",
-      border: "#3e3528",
-      text: "#f5efe5",
-      textMuted: "#a09580",
-      accent: "#c07040",
-      accentLight: "#d48858",
-      error: "#c45c4a",
-    },
-    displayFont: "'Playfair Display', serif",
-    copy: {
-      heroLabel: "PictaPet Kitchen",
-      heroHeading: 'Bon<br /><em>Appétit</em>',
-      heroSubtext: "Your pet, the master chef. White coats, copper pans, and Michelin-star ambitions.",
-      uploadLabel: "Introduce the chef",
-      generateButton: "Start Cooking",
-      loadingSteps: ["Prepping ingredients", "Plating the masterpiece", "Adding the garnish"],
-      resultLabel: "Chef's special",
-      resultHeading: "A Culinary Masterpiece",
-    },
-    promptTemplate:
-      "A charming portrait of a {species} ({breed}) with {coloring} fur, dressed as a master chef wearing a pristine white chef's coat with double-breasted buttons, a tall traditional toque blanche chef hat, holding a gleaming copper pan. The pet has {expression} and {distinguishingFeatures}. Professional restaurant kitchen background with warm lighting, appetizing food elements, photorealistic style with warm golden tones.",
-  },
-  rockstar: {
-    id: "rockstar",
-    name: "Backstage",
-    tagline: "Rock legends, louder than ever",
-    emoji: "🎸",
-    colors: {
-      bg: "#0e0a10",
-      bgAlt: "#1a1020",
-      border: "#30203a",
-      text: "#f0e8f5",
-      textMuted: "#8870a0",
-      accent: "#e040a0",
-      accentLight: "#f060b8",
-      error: "#ff5050",
-    },
-    displayFont: "'Permanent Marker', cursive",
-    copy: {
-      heroLabel: "PictaPet Backstage",
-      heroHeading: 'Born to<br /><em>Be Wild</em>',
-      heroSubtext: "Your pet shreds harder than you. Leather jackets, stage lights, and sold-out shows.",
-      uploadLabel: "Upload your rockstar",
-      generateButton: "Crank It Up",
-      loadingSteps: ["Tuning the guitar", "Testing the amps", "Dropping the curtain"],
-      resultLabel: "Encore! Encore!",
-      resultHeading: "A Legend Is Born",
-    },
-    promptTemplate:
-      "An electrifying portrait of a {species} ({breed}) with {coloring} fur, dressed as a rock star wearing a studded black leather jacket, aviator sunglasses, and a bandana, shredding on an electric guitar. The pet has {expression} and {distinguishingFeatures}. Concert stage background with dramatic purple and red spotlights, smoke machines, and an energetic crowd. High-energy rock concert photography style with motion blur effects.",
-  },
-  wizard: {
-    id: "wizard",
-    name: "Academy",
-    tagline: "Ancient magic, mystical portraits",
-    emoji: "🧙",
-    colors: {
-      bg: "#0c0e18",
-      bgAlt: "#141828",
-      border: "#222840",
-      text: "#e0e0f0",
-      textMuted: "#7078a0",
-      accent: "#8850d8",
-      accentLight: "#a070f0",
-      error: "#e05050",
-    },
-    displayFont: "'Cinzel Decorative', cursive",
-    copy: {
-      heroLabel: "PictaPet Academy",
-      heroHeading: 'The Magic<br /><em>Awaits</em>',
-      heroSubtext: "Your pet wields ancient power. Glowing staffs, mystical robes, and floating spellbooks.",
-      uploadLabel: "Summon your familiar",
-      generateButton: "Cast the Spell",
-      loadingSteps: ["Gathering arcane energy", "Weaving the enchantment", "Binding the spell"],
-      resultLabel: "The prophecy fulfilled",
-      resultHeading: "A Sorcerer Supreme",
-    },
-    promptTemplate:
-      "A mystical portrait of a {species} ({breed}) with {coloring} fur, dressed as a powerful wizard wearing flowing midnight blue robes covered in glowing silver star and moon patterns, a tall pointed wizard hat, holding a gnarled wooden staff with a glowing crystal on top. The pet has {expression} and {distinguishingFeatures}. Ancient magical library background with floating books and glowing runes, fantasy art style with ethereal blue and purple magical lighting.",
   },
 };
 

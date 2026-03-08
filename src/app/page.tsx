@@ -13,7 +13,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <HeroSection
             label="AI Portrait Studio"
-            heading='Your Pet,<br /><em>Immortalized</em>'
+            heading='Your Pet,<br /><em>Transformed</em>'
             subtext="Pick a theme. Upload a photo. Receive a portrait worthy of a frame."
           />
         </div>

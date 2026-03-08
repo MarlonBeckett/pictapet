@@ -10,6 +10,7 @@ interface ResultGalleryProps {
   generatingMore: boolean;
   selectedIndices: Set<number>;
   onToggleSelect: (index: number) => void;
+  purchased?: boolean;
 }
 
 export function ResultGallery({
@@ -17,6 +18,7 @@ export function ResultGallery({
   generatingMore,
   selectedIndices,
   onToggleSelect,
+  purchased = false,
 }: ResultGalleryProps) {
   const [featuredIndex, setFeaturedIndex] = useState(0);
 
@@ -38,9 +40,6 @@ export function ResultGallery({
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="relative">
-          <div className="absolute -inset-4 border border-[var(--color-gold)]/20" />
-          <div className="absolute -inset-2 border border-[var(--color-gold)]/10" />
-          <div className="absolute -inset-4 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)]" />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -49,7 +48,7 @@ export function ResultGallery({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="relative aspect-square overflow-hidden bg-[var(--color-charcoal)]"
+              className="relative aspect-[9/16] overflow-hidden bg-[var(--color-charcoal)]"
             >
               {featuredUrl && (
                 <Image
@@ -60,7 +59,6 @@ export function ResultGallery({
                   priority
                 />
               )}
-              <div className="absolute inset-0 shadow-[inset_0_0_80px_rgba(0,0,0,0.2)]" />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -78,6 +76,11 @@ export function ResultGallery({
           Portrait {featuredIndex + 1} of {imageUrls.length}
           {imageUrls.length > 1 ? " \u2014 Click thumbnails to browse" : ""}
         </p>
+        {!purchased && (
+          <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--color-gold)]/60 mt-2">
+            Preview — Watermark removed after purchase
+          </p>
+        )}
       </motion.div>
 
       {/* Thumbnail strip */}
@@ -92,7 +95,7 @@ export function ResultGallery({
             <button
               key={url}
               onClick={() => setFeaturedIndex(i)}
-              className={`relative w-16 h-16 overflow-hidden border-2 transition-all duration-200 cursor-pointer group ${
+              className={`relative w-12 aspect-[9/16] overflow-hidden border-2 transition-all duration-200 cursor-pointer group ${
                 i === featuredIndex
                   ? "border-[var(--color-gold)] shadow-[0_0_12px_rgba(var(--color-gold-rgb),0.3)]"
                   : "border-[var(--color-charcoal-light)] hover:border-[var(--color-warm-gray)]"
@@ -123,7 +126,7 @@ export function ResultGallery({
 
           {/* Loading placeholder for new generation */}
           {generatingMore && (
-            <div className="w-16 h-16 border-2 border-dashed border-[var(--color-charcoal-light)] flex items-center justify-center">
+            <div className="w-12 aspect-[9/16] border-2 border-dashed border-[var(--color-charcoal-light)] flex items-center justify-center">
               <Loader2 className="w-4 h-4 text-[var(--color-warm-gray)] animate-spin" />
             </div>
           )}

@@ -25,7 +25,7 @@ export function UploadZone({ preview, error, onFile, onClear }: UploadZoneProps)
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/jpeg": [], "image/png": [], "image/webp": [] },
+    accept: { "image/jpeg": [], "image/png": [], "image/webp": [], "image/heic": [".heic"], "image/heif": [".heif"] },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024,
   });
@@ -114,7 +114,7 @@ export function UploadZone({ preview, error, onFile, onClear }: UploadZoneProps)
                     {isDragActive ? "Release to upload" : "Drop your pet's photo here"}
                   </p>
                   <p className="text-xs text-[var(--color-warm-gray)]/70">
-                    or click to browse &middot; JPG, PNG, WebP &middot; 10MB max
+                    or click to browse &middot; JPG, PNG, WebP, HEIC &middot; 10MB max
                   </p>
                 </div>
               </div>

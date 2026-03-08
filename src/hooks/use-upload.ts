@@ -1,9 +1,25 @@
 "use client";
 
 import { useState, useCallback } from "react";
+// heic2any accesses `window` at module level — must be dynamically imported
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+const ACCEPTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
+
+const HEIC_EXTENSIONS = [".heic", ".heif"];
+
+function isAcceptedFile(file: File): boolean {
+  if (ACCEPTED_TYPES.includes(file.type)) return true;
+  const ext = file.name.toLowerCase().match(/\.\w+$/)?.[0];
+  return ext ? ACCEPTED_EXTENSIONS.includes(ext) : false;
+}
+
+function isHeicFile(file: File): boolean {
+  if (file.type === "image/heic" || file.type === "image/heif") return true;
+  const ext = file.name.toLowerCase().match(/\.\w+$/)?.[0];
+  return ext ? HEIC_EXTENSIONS.includes(ext) : false;
+}
 
 export function useUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -13,8 +29,8 @@ export function useUpload() {
   const handleFile = useCallback((acceptedFile: File) => {
     setError(null);
 
-    if (!ACCEPTED_TYPES.includes(acceptedFile.type)) {
-      setError("Please upload a JPEG, PNG, or WebP image.");
+    if (!isAcceptedFile(acceptedFile)) {
+      setError("Please upload a JPEG, PNG, WebP, or HEIC image.");
       return;
     }
 
@@ -24,8 +40,21 @@ export function useUpload() {
     }
 
     setFile(acceptedFile);
-    const url = URL.createObjectURL(acceptedFile);
-    setPreview(url);
+
+    if (isHeicFile(acceptedFile)) {
+      // Browsers can't display HEIC — convert to JPEG for preview
+      import("heic2any").then(({ default: heic2any }) => heic2any({ blob: acceptedFile, toType: "image/jpeg", quality: 0.8 }))
+        .then((result) => {
+          const blob = Array.isArray(result) ? result[0] : result;
+          setPreview(URL.createObjectURL(blob));
+        })
+        .catch(() => {
+          // Fallback: try objectURL anyway (some browsers may support it)
+          setPreview(URL.createObjectURL(acceptedFile));
+        });
+    } else {
+      setPreview(URL.createObjectURL(acceptedFile));
+    }
   }, []);
 
   const clear = useCallback(() => {

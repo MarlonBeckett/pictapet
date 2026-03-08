@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { useGenerationStatus } from "@/hooks/use-generation-status";
 import { LoadingAnimation } from "@/components/loading-animation";
 import { ResultGallery } from "@/components/result-gallery";
@@ -9,12 +9,22 @@ import { DownloadShare } from "@/components/download-share";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 export default function ResultPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const sessionId = params.sessionId as string;
-  const { status, imageUrls, generatingMore, error } = useGenerationStatus(sessionId);
+  const purchasedParam = searchParams.get("purchased") === "true";
+  const { status, imageUrls, purchased, awaitingPurchase, generatingMore, error, waitForPurchase } = useGenerationStatus(sessionId);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+
+  // If redirected back from Stripe, poll until webhook confirms purchase
+  useEffect(() => {
+    if (purchasedParam && !purchased) {
+      waitForPurchase();
+    }
+  }, [purchasedParam, purchased, waitForPurchase]);
 
   const handleStartOver = () => {
     window.location.href = "/";
@@ -72,16 +82,32 @@ export default function ResultPage() {
               </h2>
             </motion.div>
 
+            {awaitingPurchase && !purchased && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center justify-center gap-3 mb-8 py-3 border border-[var(--color-gold)]/30 max-w-sm mx-auto"
+              >
+                <Loader2 className="w-4 h-4 text-[var(--color-gold)] animate-spin" />
+                <span className="text-xs tracking-wider text-[var(--color-gold)] uppercase">
+                  Confirming purchase...
+                </span>
+              </motion.div>
+            )}
+
             <ResultGallery
               imageUrls={imageUrls}
               generatingMore={generatingMore}
               selectedIndices={selectedIndices}
               onToggleSelect={handleToggleSelect}
+              purchased={purchased}
             />
             <DownloadShare
               imageUrls={imageUrls}
               selectedIndices={selectedIndices}
               onStartOver={handleStartOver}
+              purchased={purchased}
+              sessionId={sessionId}
             />
           </div>
         </main>

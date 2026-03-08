@@ -29,8 +29,11 @@ export default function ThemePage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const [selectedSubRole, setSelectedSubRole] = useState<string>(
+    theme?.subRoles[0]?.id ?? ""
+  );
 
-  const { status, imageUrls, generatingMore, error: genError, triggerPoll } = useGenerationStatus(
+  const { status, imageUrls, purchased, generatingMore, error: genError, triggerPoll, waitForPurchase } = useGenerationStatus(
     step === "loading" || step === "result" ? sessionId : null
   );
 
@@ -52,6 +55,9 @@ export default function ThemePage() {
       const formData = new FormData();
       formData.append("photo", file);
       formData.append("style", theme.id);
+      if (selectedSubRole) {
+        formData.append("subRole", selectedSubRole);
+      }
 
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -131,6 +137,49 @@ export default function ThemePage() {
                 />
 
                 <div className="space-y-14">
+                  {/* Sub-role selector */}
+                  <div className="max-w-2xl mx-auto">
+                    <p className="text-xs tracking-[0.2em] uppercase text-[var(--color-gold)] mb-4 text-center font-medium">
+                      Choose Your Character
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-3">
+                      {theme.subRoles.map((role) => (
+                        <button
+                          key={role.id}
+                          onClick={() => setSelectedSubRole(role.id)}
+                          className={`
+                            group relative px-5 py-3 border transition-all duration-300 cursor-pointer
+                            ${selectedSubRole === role.id
+                              ? "border-[var(--color-gold)] bg-[var(--color-gold)]/10"
+                              : "border-[var(--color-charcoal-light)] hover:border-[var(--color-gold)]/40 bg-transparent"
+                            }
+                          `}
+                        >
+                          <span className="text-xl mb-1 block">{role.emoji}</span>
+                          <span
+                            className={`text-xs tracking-wide font-medium block ${
+                              selectedSubRole === role.id
+                                ? "text-[var(--color-gold)]"
+                                : "text-[var(--color-parchment)]"
+                            }`}
+                          >
+                            {role.name}
+                          </span>
+                          <span className="text-[10px] text-[var(--color-warm-gray)] block mt-0.5">
+                            {role.description}
+                          </span>
+                          {selectedSubRole === role.id && (
+                            <motion.div
+                              layoutId="subrole-indicator"
+                              className="absolute inset-0 border-2 border-[var(--color-gold)] pointer-events-none"
+                              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <UploadZone
                     preview={preview}
                     error={uploadError}
@@ -148,7 +197,7 @@ export default function ThemePage() {
                         disabled={!file}
                         loading={submitting}
                         onClick={handleGenerate}
-                        label={theme.copy.generateButton}
+                        label={theme.subRoles.find(r => r.id === selectedSubRole)?.generateButton ?? theme.copy.generateButton}
                       />
                     </motion.div>
                   )}
@@ -228,6 +277,7 @@ export default function ThemePage() {
                   generatingMore={generatingMore}
                   selectedIndices={selectedIndices}
                   onToggleSelect={handleToggleSelect}
+                  purchased={purchased}
                 />
                 <DownloadShare
                   imageUrls={imageUrls}
@@ -235,6 +285,8 @@ export default function ThemePage() {
                   onStartOver={handleStartOver}
                   onGenerateAnother={handleGenerateAnother}
                   generatingMore={generatingMore}
+                  purchased={purchased}
+                  sessionId={sessionId!}
                 />
               </motion.div>
             )}

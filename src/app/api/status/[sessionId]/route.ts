@@ -15,6 +15,7 @@ export async function GET(
   return NextResponse.json({
     status: session.status,
     imageUrls: session.imageUrls,
+    purchased: process.env.BYPASS_PURCHASE === "true" ? true : session.purchased,
     generatingMore: session.generatingMore ?? false,
     error: session.error,
   });

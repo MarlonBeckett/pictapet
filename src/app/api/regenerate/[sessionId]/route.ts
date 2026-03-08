@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, updateSession, addImageToSession } from "@/lib/session";
+import { getSession, updateSession, addImageAndOriginalToSession } from "@/lib/session";
 import { buildPrompt } from "@/lib/prompt-engine";
 import { generateImage } from "@/lib/image-gen";
 import { saveGeneratedImage } from "@/lib/storage";
@@ -50,10 +50,15 @@ async function regenerate(sessionId: string) {
   const session = getSession(sessionId);
   if (!session || !session.petAnalysis) return;
 
-  const prompt = buildPrompt(session.style, session.petAnalysis);
-  const imageBuffer = await generateImage(prompt);
+  const prompt = buildPrompt(session.style, session.petAnalysis, session.subRole);
+
+  const referenceImage = session.originalPhotoBase64 && session.originalPhotoMimeType
+    ? { data: session.originalPhotoBase64, mimeType: session.originalPhotoMimeType }
+    : undefined;
+
+  const imageBuffer = await generateImage(prompt, referenceImage);
 
   const index = session.imageUrls.length;
-  const imageUrl = await saveGeneratedImage(sessionId, imageBuffer, index);
-  addImageToSession(sessionId, imageUrl);
+  const { watermarkedUrl, originalPath } = await saveGeneratedImage(sessionId, imageBuffer, index);
+  addImageAndOriginalToSession(sessionId, watermarkedUrl, originalPath);
 }

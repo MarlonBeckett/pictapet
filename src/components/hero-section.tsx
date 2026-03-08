@@ -10,7 +10,7 @@ interface HeroSectionProps {
 
 export function HeroSection({
   label = "AI Portrait Studio",
-  heading = 'Your Pet,<br /><em>Immortalized</em>',
+  heading = 'Your Pet,<br /><em>Transformed</em>',
   subtext = "Upload a photo. Choose a style. Receive a portrait worthy of a frame.",
 }: HeroSectionProps) {
   return (

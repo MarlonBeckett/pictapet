@@ -36,6 +36,9 @@ yarn-error.log*
 # generated images
 /public/generated/
 
+# original (unwatermarked) images
+/storage/originals/
+
 # vercel
 .vercel
 

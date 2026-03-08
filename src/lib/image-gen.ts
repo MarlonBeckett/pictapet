@@ -1,12 +1,34 @@
 import { genai } from "./gemini";
 
-export async function generateImage(prompt: string): Promise<Buffer> {
+interface ReferenceImage {
+  data: string;
+  mimeType: string;
+}
+
+export async function generateImage(
+  prompt: string,
+  referenceImage?: ReferenceImage
+): Promise<Buffer> {
+  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+
+  // Place reference image BEFORE text so the model sees the pet first
+  if (referenceImage) {
+    parts.push({
+      inlineData: {
+        mimeType: referenceImage.mimeType,
+        data: referenceImage.data,
+      },
+    });
+  }
+
+  parts.push({ text: prompt });
+
   const response = await genai.models.generateContent({
-    model: "gemini-2.0-flash-exp-image-generation",
+    model: "gemini-3-pro-image-preview",
     contents: [
       {
         role: "user",
-        parts: [{ text: prompt }],
+        parts,
       },
     ],
     config: {
@@ -15,12 +37,12 @@ export async function generateImage(prompt: string): Promise<Buffer> {
   });
 
   // Extract image from response
-  const parts = response.candidates?.[0]?.content?.parts;
-  if (!parts) {
+  const responseParts = response.candidates?.[0]?.content?.parts;
+  if (!responseParts) {
     throw new Error("No response parts from image generation");
   }
 
-  for (const part of parts) {
+  for (const part of responseParts) {
     if (part.inlineData?.data) {
       return Buffer.from(part.inlineData.data, "base64");
     }

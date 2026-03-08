@@ -6,19 +6,25 @@ import { SessionStatus } from "@/types";
 interface GenerationStatus {
   status: SessionStatus | null;
   imageUrls: string[];
+  purchased: boolean;
+  awaitingPurchase: boolean;
   generatingMore: boolean;
   error: string | null;
   isPolling: boolean;
   triggerPoll: () => void;
+  waitForPurchase: () => void;
 }
 
 export function useGenerationStatus(sessionId: string | null): GenerationStatus {
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [purchased, setPurchased] = useState(false);
+  const [awaitingPurchase, setAwaitingPurchase] = useState(false);
   const [generatingMore, setGeneratingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const awaitingPurchaseRef = useRef(false);
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
@@ -40,7 +46,18 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
 
         setStatus(data.status);
         setImageUrls(data.imageUrls ?? []);
+        setPurchased(data.purchased ?? false);
         setGeneratingMore(data.generatingMore ?? false);
+
+        if (data.purchased) {
+          awaitingPurchaseRef.current = false;
+          setAwaitingPurchase(false);
+        }
+
+        // Keep polling if awaiting purchase confirmation
+        if (awaitingPurchaseRef.current && !data.purchased) {
+          return; // don't stop polling
+        }
 
         if (data.status === "ready" && !data.generatingMore) {
           stopPolling();
@@ -55,7 +72,7 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
     };
 
     poll();
-    intervalRef.current = setInterval(poll, 2000);
+    intervalRef.current = setInterval(poll, 1500);
   }, [stopPolling]);
 
   // Start polling when sessionId changes (initial generation)
@@ -68,18 +85,28 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
     setStatus("analyzing");
     setError(null);
     setImageUrls([]);
+    setPurchased(false);
+    setAwaitingPurchase(false);
+    awaitingPurchaseRef.current = false;
     setGeneratingMore(false);
     startPolling(sessionId);
 
     return () => stopPolling();
   }, [sessionId, stopPolling, startPolling]);
 
-  // Resume polling when generatingMore becomes true (after regenerate call)
   const triggerPoll = useCallback(() => {
     if (sessionId && !intervalRef.current) {
       startPolling(sessionId);
     }
   }, [sessionId, startPolling]);
 
-  return { status, imageUrls, generatingMore, error, isPolling, triggerPoll };
+  const waitForPurchase = useCallback(() => {
+    awaitingPurchaseRef.current = true;
+    setAwaitingPurchase(true);
+    if (sessionId && !intervalRef.current) {
+      startPolling(sessionId);
+    }
+  }, [sessionId, startPolling]);
+
+  return { status, imageUrls, purchased, awaitingPurchase, generatingMore, error, isPolling, triggerPoll, waitForPurchase };
 }
