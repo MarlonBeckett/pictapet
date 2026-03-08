@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Validate each item
     for (const item of items) {
-      const session = getSession(item.sessionId);
+      const session = await getSession(item.sessionId);
       if (!session) {
         return NextResponse.json({ error: `Session ${item.sessionId} not found` }, { status: 404 });
       }

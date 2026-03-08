@@ -10,7 +10,7 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const index = parseInt(searchParams.get("index") || "0", 10);
 
-  const session = getSession(sessionId);
+  const session = await getSession(sessionId);
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }

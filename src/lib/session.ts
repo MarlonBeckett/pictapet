@@ -1,9 +1,20 @@
-import { GenerationSession, SessionStatus, StyleTheme, PetAnalysis } from "@/types";
+import { GenerationSession, SessionStatus, StyleTheme } from "@/types";
 import { v4 as uuidv4 } from "uuid";
+import { Redis } from "@upstash/redis";
 
-const sessions = new Map<string, GenerationSession>();
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
-export function createSession(style: StyleTheme, subRole?: string): GenerationSession {
+const SESSION_TTL = 60 * 60; // 1 hour in seconds
+const KEY_PREFIX = "session:";
+
+function sessionKey(id: string): string {
+  return `${KEY_PREFIX}${id}`;
+}
+
+export async function createSession(style: StyleTheme, subRole?: string): Promise<GenerationSession> {
   const session: GenerationSession = {
     id: uuidv4(),
     status: "analyzing",
@@ -15,76 +26,60 @@ export function createSession(style: StyleTheme, subRole?: string): GenerationSe
     stripeSessionIds: [],
     createdAt: Date.now(),
   };
-  sessions.set(session.id, session);
+  await redis.set(sessionKey(session.id), JSON.stringify(session), { ex: SESSION_TTL });
   return session;
 }
 
-export function getSession(id: string): GenerationSession | undefined {
-  return sessions.get(id);
+export async function getSession(id: string): Promise<GenerationSession | undefined> {
+  const data = await redis.get<string>(sessionKey(id));
+  if (!data) return undefined;
+  return typeof data === "string" ? JSON.parse(data) : data as unknown as GenerationSession;
 }
 
-export function updateSession(
+export async function updateSession(
   id: string,
-  updates: Partial<Pick<GenerationSession, "status" | "petAnalysis" | "imageUrls" | "purchasedIndices" | "generatingMore" | "originalPhotoBase64" | "originalPhotoMimeType" | "error">>
-): void {
-  const session = sessions.get(id);
-  if (session) {
-    Object.assign(session, updates);
-  }
+  updates: Partial<GenerationSession>
+): Promise<void> {
+  const session = await getSession(id);
+  if (!session) return;
+  const updated = { ...session, ...updates };
+  await redis.set(sessionKey(id), JSON.stringify(updated), { ex: SESSION_TTL });
 }
 
-export function addImageToSession(id: string, imageUrl: string): void {
-  const session = sessions.get(id);
-  if (session) {
-    session.imageUrls.push(imageUrl);
-    session.generatingMore = false;
-  }
-}
-
-export function addImageAndOriginalToSession(
+export async function addImageAndOriginalToSession(
   id: string,
   imageUrl: string,
   originalPath: string
-): void {
-  const session = sessions.get(id);
-  if (session) {
-    session.imageUrls.push(imageUrl);
-    session.originalImagePaths.push(originalPath);
-    session.generatingMore = false;
-  }
+): Promise<void> {
+  const session = await getSession(id);
+  if (!session) return;
+  session.imageUrls.push(imageUrl);
+  session.originalImagePaths.push(originalPath);
+  session.generatingMore = false;
+  await redis.set(sessionKey(id), JSON.stringify(session), { ex: SESSION_TTL });
 }
 
-export function markImagesPurchased(id: string, indices: number[], stripeSessionId: string): void {
-  const session = sessions.get(id);
-  if (session) {
-    const existing = new Set(session.purchasedIndices);
-    for (const idx of indices) {
-      existing.add(idx);
-    }
-    session.purchasedIndices = Array.from(existing);
-    session.stripeSessionIds.push(stripeSessionId);
+export async function markImagesPurchased(id: string, indices: number[], stripeSessionId: string): Promise<void> {
+  const session = await getSession(id);
+  if (!session) return;
+  const existing = new Set(session.purchasedIndices);
+  for (const idx of indices) {
+    existing.add(idx);
   }
+  session.purchasedIndices = Array.from(existing);
+  session.stripeSessionIds.push(stripeSessionId);
+  await redis.set(sessionKey(id), JSON.stringify(session), { ex: SESSION_TTL });
 }
 
-export function isImagePurchased(id: string, index: number): boolean {
-  const session = sessions.get(id);
+export async function isImagePurchased(id: string, index: number): Promise<boolean> {
+  const session = await getSession(id);
   return session?.purchasedIndices.includes(index) ?? false;
 }
 
-export function setSessionStatus(id: string, status: SessionStatus): void {
-  updateSession(id, { status });
+export async function setSessionStatus(id: string, status: SessionStatus): Promise<void> {
+  await updateSession(id, { status });
 }
 
-export function setSessionError(id: string, error: string): void {
-  updateSession(id, { status: "error", error });
+export async function setSessionError(id: string, error: string): Promise<void> {
+  await updateSession(id, { status: "error", error });
 }
-
-// Clean up old sessions (older than 1 hour)
-setInterval(() => {
-  const oneHourAgo = Date.now() - 60 * 60 * 1000;
-  for (const [id, session] of sessions) {
-    if (session.createdAt < oneHourAgo) {
-      sessions.delete(id);
-    }
-  }
-}, 10 * 60 * 1000);

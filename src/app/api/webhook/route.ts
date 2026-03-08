@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         }
 
         for (const [sessionId, indices] of grouped) {
-          markImagesPurchased(sessionId, indices, checkoutSession.id);
+          await markImagesPurchased(sessionId, indices, checkoutSession.id);
           console.log(`Session ${sessionId}: marked images [${indices.join(",")}] as purchased`);
         }
       } catch (err) {

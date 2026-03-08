@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const session = createSession(style, subRole || undefined);
+    const session = await createSession(style, subRole || undefined);
 
     // Run pipeline async (don't await)
     runPipeline(session.id, file, style, detectedMimeType, subRole || undefined).catch((err) => {
@@ -87,15 +87,12 @@ async function runPipeline(sessionId: string, file: File, style: StyleTheme, det
   const base64Photo = buffer.toString("base64");
 
   const petAnalysis = await analyzePetPhoto(buffer, mimeType);
-  updateSession(sessionId, { petAnalysis, status: "generating" });
-
-  // Store original photo on session for regeneration
-  const { getSession: getSessionDirect } = await import("@/lib/session");
-  const sessionObj = getSessionDirect(sessionId);
-  if (sessionObj) {
-    sessionObj.originalPhotoBase64 = base64Photo;
-    sessionObj.originalPhotoMimeType = mimeType;
-  }
+  await updateSession(sessionId, {
+    petAnalysis,
+    status: "generating",
+    originalPhotoBase64: base64Photo,
+    originalPhotoMimeType: mimeType,
+  });
 
   // Step 2: Build prompt and generate image with reference photo
   const prompt = buildPrompt(style, petAnalysis, subRole);
@@ -106,15 +103,9 @@ async function runPipeline(sessionId: string, file: File, style: StyleTheme, det
 
   // Step 3: Save image (watermarked public + original private)
   const { watermarkedUrl, originalPath } = await saveGeneratedImage(sessionId, imageBuffer, 0);
-  updateSession(sessionId, {
+  await updateSession(sessionId, {
     imageUrls: [watermarkedUrl],
+    originalImagePaths: [originalPath],
     status: "ready",
   });
-
-  // Store original path directly on session
-  const { getSession } = await import("@/lib/session");
-  const session = getSession(sessionId);
-  if (session) {
-    session.originalImagePaths = [originalPath];
-  }
 }

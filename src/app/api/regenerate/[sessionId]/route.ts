@@ -14,7 +14,7 @@ export async function POST(
 ) {
   const { sessionId } = await params;
 
-  const session = getSession(sessionId);
+  const session = await getSession(sessionId);
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
@@ -35,7 +35,7 @@ export async function POST(
     return NextResponse.json({ error: "No pet analysis available" }, { status: 400 });
   }
 
-  updateSession(sessionId, { generatingMore: true });
+  await updateSession(sessionId, { generatingMore: true });
 
   // Run generation async
   regenerate(sessionId).catch((err) => {
@@ -47,7 +47,7 @@ export async function POST(
 }
 
 async function regenerate(sessionId: string) {
-  const session = getSession(sessionId);
+  const session = await getSession(sessionId);
   if (!session || !session.petAnalysis) return;
 
   const prompt = buildPrompt(session.style, session.petAnalysis, session.subRole);
@@ -60,5 +60,5 @@ async function regenerate(sessionId: string) {
 
   const index = session.imageUrls.length;
   const { watermarkedUrl, originalPath } = await saveGeneratedImage(sessionId, imageBuffer, index);
-  addImageAndOriginalToSession(sessionId, watermarkedUrl, originalPath);
+  await addImageAndOriginalToSession(sessionId, watermarkedUrl, originalPath);
 }
