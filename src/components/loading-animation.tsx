@@ -3,17 +3,24 @@
 import { motion } from "framer-motion";
 import { SessionStatus } from "@/types";
 
-const stages = [
-  { status: "analyzing", label: "Studying your pet", numeral: "I" },
-  { status: "generating", label: "Painting the portrait", numeral: "II" },
-  { status: "ready", label: "Final brushstrokes", numeral: "III" },
+const DEFAULT_STEPS: [string, string, string] = [
+  "Studying your pet",
+  "Painting the portrait",
+  "Final brushstrokes",
 ];
 
 interface LoadingAnimationProps {
   status: SessionStatus | null;
+  steps?: [string, string, string];
 }
 
-export function LoadingAnimation({ status }: LoadingAnimationProps) {
+export function LoadingAnimation({ status, steps = DEFAULT_STEPS }: LoadingAnimationProps) {
+  const stages = [
+    { status: "analyzing", label: steps[0], numeral: "I" },
+    { status: "generating", label: steps[1], numeral: "II" },
+    { status: "ready", label: steps[2], numeral: "III" },
+  ];
+
   const currentIndex = stages.findIndex((s) => s.status === status);
 
   return (

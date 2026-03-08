@@ -68,6 +68,6 @@ async function runPipeline(sessionId: string, file: File, style: StyleTheme) {
   const imageBuffer = await generateImage(prompt);
 
   // Step 3: Save image
-  const imageUrl = await saveGeneratedImage(sessionId, imageBuffer);
-  updateSession(sessionId, { imageUrl, status: "ready" });
+  const imageUrl = await saveGeneratedImage(sessionId, imageBuffer, 0);
+  updateSession(sessionId, { imageUrls: [imageUrl], status: "ready" });
 }

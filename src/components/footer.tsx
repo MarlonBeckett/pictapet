@@ -1,13 +1,17 @@
 "use client";
 
-export function Footer() {
+interface FooterProps {
+  subtitle?: string;
+}
+
+export function Footer({ subtitle }: FooterProps) {
   return (
     <footer className="mt-auto border-t border-[var(--color-charcoal-light)]/40 py-10">
       <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="ornament-line" />
           <span className="font-[var(--font-serif)] text-sm text-[var(--color-warm-gray)] italic">
-            PictaPet
+            PictaPet{subtitle ? ` ${subtitle}` : ""}
           </span>
           <div className="ornament-line" />
         </div>

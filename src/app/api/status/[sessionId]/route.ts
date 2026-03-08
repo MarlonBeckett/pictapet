@@ -14,7 +14,8 @@ export async function GET(
 
   return NextResponse.json({
     status: session.status,
-    imageUrl: session.imageUrl,
+    imageUrls: session.imageUrls,
+    generatingMore: session.generatingMore ?? false,
     error: session.error,
   });
 }

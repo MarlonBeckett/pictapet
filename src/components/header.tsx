@@ -1,6 +1,10 @@
 "use client";
 
-export function Header() {
+interface HeaderProps {
+  subtitle?: string;
+}
+
+export function Header({ subtitle }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-[var(--color-espresso)]/80 border-b border-[var(--color-charcoal-light)]/50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -16,9 +20,14 @@ export function Header() {
           <span className="font-[var(--font-serif)] text-2xl tracking-tight text-[var(--color-parchment)]">
             PictaPet
           </span>
+          {subtitle && (
+            <span className="hidden sm:block font-[var(--font-serif)] text-lg text-[var(--color-gold)] italic">
+              {subtitle}
+            </span>
+          )}
         </a>
         <span className="hidden sm:block text-xs tracking-[0.2em] uppercase text-[var(--color-warm-gray)]">
-          AI Portrait Studio
+          {subtitle ? `${subtitle} Edition` : "AI Portrait Studio"}
         </span>
       </div>
     </header>

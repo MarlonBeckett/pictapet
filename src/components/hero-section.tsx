@@ -2,7 +2,17 @@
 
 import { motion } from "framer-motion";
 
-export function HeroSection() {
+interface HeroSectionProps {
+  label?: string;
+  heading?: string;
+  subtext?: string;
+}
+
+export function HeroSection({
+  label = "AI Portrait Studio",
+  heading = 'Your Pet,<br /><em>Immortalized</em>',
+  subtext = "Upload a photo. Choose a style. Receive a portrait worthy of a frame.",
+}: HeroSectionProps) {
   return (
     <section className="pt-20 md:pt-32 pb-16 md:pb-24 text-center relative">
       {/* Subtle radial glow behind hero */}
@@ -15,41 +25,19 @@ export function HeroSection() {
         className="relative"
       >
         <p className="text-xs tracking-[0.3em] uppercase text-[var(--color-gold)] mb-6 font-medium">
-          AI Portrait Studio
+          {label}
         </p>
 
-        <h1 className="font-[var(--font-serif)] text-5xl md:text-7xl lg:text-8xl text-[var(--color-parchment)] mb-6 leading-[0.95]">
-          Your Pet,<br />
-          <em className="text-[var(--color-gold)]">Immortalized</em>
-        </h1>
+        <h1
+          className="font-[var(--font-serif)] text-5xl md:text-7xl lg:text-8xl text-[var(--color-parchment)] mb-6 leading-[0.95] [&>em]:text-[var(--color-gold)]"
+          dangerouslySetInnerHTML={{ __html: heading }}
+        />
 
         <div className="ornament-line mx-auto mb-6" />
 
         <p className="text-base md:text-lg text-[var(--color-warm-gray)] max-w-md mx-auto leading-relaxed">
-          Upload a photo. Choose a style.<br className="hidden md:block" />
-          Receive a portrait worthy of a frame.
+          {subtext}
         </p>
-      </motion.div>
-
-      <motion.div
-        className="flex items-center justify-center gap-8 mt-14 text-[var(--color-warm-gray)]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-      >
-        {["Upload", "Style", "Generate", "Download"].map((label, i) => (
-          <div key={label} className="flex items-center gap-8">
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-[10px] tracking-[0.2em] uppercase font-medium text-[var(--color-gold)]/70">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-xs tracking-wide">{label}</span>
-            </div>
-            {i < 3 && (
-              <div className="w-8 h-px bg-[var(--color-charcoal-light)]" />
-            )}
-          </div>
-        ))}
       </motion.div>
     </section>
   );

@@ -7,9 +7,10 @@ interface GenerateButtonProps {
   disabled: boolean;
   loading: boolean;
   onClick: () => void;
+  label?: string;
 }
 
-export function GenerateButton({ disabled, loading, onClick }: GenerateButtonProps) {
+export function GenerateButton({ disabled, loading, onClick, label = "Generate Portrait" }: GenerateButtonProps) {
   return (
     <motion.button
       initial={{ opacity: 0, y: 10 }}
@@ -32,7 +33,7 @@ export function GenerateButton({ disabled, loading, onClick }: GenerateButtonPro
           <span>Creating...</span>
         </>
       ) : (
-        <span>Generate Portrait</span>
+        <span>{label}</span>
       )}
     </motion.button>
   );

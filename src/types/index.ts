@@ -32,7 +32,8 @@ export interface GenerationSession {
   status: SessionStatus;
   style: StyleTheme;
   petAnalysis?: PetAnalysis;
-  imageUrl?: string;
+  imageUrls: string[];
+  generatingMore?: boolean;
   error?: string;
   createdAt: number;
 }

@@ -9,11 +9,12 @@ async function ensureDir() {
 
 export async function saveGeneratedImage(
   sessionId: string,
-  imageBuffer: Buffer
+  imageBuffer: Buffer,
+  index: number = 0
 ): Promise<string> {
   await ensureDir();
 
-  const filename = `${sessionId}.png`;
+  const filename = `${sessionId}-${index}.png`;
   const filepath = path.join(GENERATED_DIR, filename);
 
   await fs.writeFile(filepath, imageBuffer);

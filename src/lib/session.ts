@@ -8,6 +8,7 @@ export function createSession(style: StyleTheme): GenerationSession {
     id: uuidv4(),
     status: "analyzing",
     style,
+    imageUrls: [],
     createdAt: Date.now(),
   };
   sessions.set(session.id, session);
@@ -20,11 +21,19 @@ export function getSession(id: string): GenerationSession | undefined {
 
 export function updateSession(
   id: string,
-  updates: Partial<Pick<GenerationSession, "status" | "petAnalysis" | "imageUrl" | "error">>
+  updates: Partial<Pick<GenerationSession, "status" | "petAnalysis" | "imageUrls" | "generatingMore" | "error">>
 ): void {
   const session = sessions.get(id);
   if (session) {
     Object.assign(session, updates);
+  }
+}
+
+export function addImageToSession(id: string, imageUrl: string): void {
+  const session = sessions.get(id);
+  if (session) {
+    session.imageUrls.push(imageUrl);
+    session.generatingMore = false;
   }
 }
 

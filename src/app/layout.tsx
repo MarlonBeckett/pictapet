@@ -13,10 +13,10 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "PictaPet — Portraits Worthy of a Frame",
   description:
-    "Upload your pet's photo. Choose a style. Receive a museum-quality AI portrait.",
+    "Upload your pet's photo. Choose a theme. Receive a museum-quality AI portrait.",
   openGraph: {
     title: "PictaPet — Portraits Worthy of a Frame",
-    description: "Upload your pet's photo. Choose a style. Receive a museum-quality AI portrait.",
+    description: "Upload your pet's photo. Choose a theme. Receive a museum-quality AI portrait.",
     type: "website",
   },
 };
@@ -28,10 +28,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Display fonts for themes */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bangers&family=Cinzel+Decorative:wght@400;700&family=MedievalSharp&family=Orbitron:wght@400;700&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Rye&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className={`${dmSans.variable} antialiased min-h-screen flex flex-col`}>
-        <Header />
         {children}
-        <Footer />
       </body>
     </html>
   );
