@@ -34,6 +34,13 @@ export interface SubRole {
   generateButton?: string;
 }
 
+export interface CartItem {
+  sessionId: string;
+  imageIndex: number;
+  imageUrl: string;
+  themeName: string;
+}
+
 export interface GenerationSession {
   id: string;
   status: SessionStatus;
@@ -42,8 +49,8 @@ export interface GenerationSession {
   petAnalysis?: PetAnalysis;
   imageUrls: string[];
   originalImagePaths: string[];
-  purchased: boolean;
-  stripeSessionId?: string;
+  purchasedIndices: number[];
+  stripeSessionIds: string[];
   generatingMore?: boolean;
   originalPhotoBase64?: string;
   originalPhotoMimeType?: string;

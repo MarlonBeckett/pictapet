@@ -15,7 +15,7 @@ export async function GET(
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  if (!session.purchased && process.env.BYPASS_PURCHASE !== "true") {
+  if (!session.purchasedIndices.includes(index) && process.env.BYPASS_PURCHASE !== "true") {
     return NextResponse.json({ error: "Purchase required" }, { status: 403 });
   }
 

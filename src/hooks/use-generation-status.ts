@@ -6,25 +6,26 @@ import { SessionStatus } from "@/types";
 interface GenerationStatus {
   status: SessionStatus | null;
   imageUrls: string[];
-  purchased: boolean;
+  purchasedIndices: number[];
   awaitingPurchase: boolean;
   generatingMore: boolean;
   error: string | null;
   isPolling: boolean;
   triggerPoll: () => void;
-  waitForPurchase: () => void;
+  waitForPurchase: (indices: number[]) => void;
+  isImagePurchased: (index: number) => boolean;
 }
 
 export function useGenerationStatus(sessionId: string | null): GenerationStatus {
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [purchased, setPurchased] = useState(false);
+  const [purchasedIndices, setPurchasedIndices] = useState<number[]>([]);
   const [awaitingPurchase, setAwaitingPurchase] = useState(false);
   const [generatingMore, setGeneratingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const awaitingPurchaseRef = useRef(false);
+  const awaitedIndicesRef = useRef<number[]>([]);
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
@@ -46,17 +47,24 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
 
         setStatus(data.status);
         setImageUrls(data.imageUrls ?? []);
-        setPurchased(data.purchased ?? false);
+        setPurchasedIndices(data.purchasedIndices ?? []);
         setGeneratingMore(data.generatingMore ?? false);
 
-        if (data.purchased) {
-          awaitingPurchaseRef.current = false;
-          setAwaitingPurchase(false);
+        // Check if all awaited indices are now purchased
+        const currentPurchased: number[] = data.purchasedIndices ?? [];
+        if (awaitedIndicesRef.current.length > 0) {
+          const allPurchased = awaitedIndicesRef.current.every((idx) =>
+            currentPurchased.includes(idx)
+          );
+          if (allPurchased) {
+            awaitedIndicesRef.current = [];
+            setAwaitingPurchase(false);
+          }
         }
 
         // Keep polling if awaiting purchase confirmation
-        if (awaitingPurchaseRef.current && !data.purchased) {
-          return; // don't stop polling
+        if (awaitedIndicesRef.current.length > 0) {
+          return;
         }
 
         if (data.status === "ready" && !data.generatingMore) {
@@ -75,18 +83,16 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
     intervalRef.current = setInterval(poll, 1500);
   }, [stopPolling]);
 
-  // Start polling when sessionId changes (initial generation)
   useEffect(() => {
     stopPolling();
 
     if (!sessionId) {
-      // Reset all state so stale values don't cause issues on next generation
       setStatus(null);
       setError(null);
       setImageUrls([]);
-      setPurchased(false);
+      setPurchasedIndices([]);
       setAwaitingPurchase(false);
-      awaitingPurchaseRef.current = false;
+      awaitedIndicesRef.current = [];
       setGeneratingMore(false);
       return;
     }
@@ -94,9 +100,9 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
     setStatus("analyzing");
     setError(null);
     setImageUrls([]);
-    setPurchased(false);
+    setPurchasedIndices([]);
     setAwaitingPurchase(false);
-    awaitingPurchaseRef.current = false;
+    awaitedIndicesRef.current = [];
     setGeneratingMore(false);
     startPolling(sessionId);
 
@@ -109,13 +115,29 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
     }
   }, [sessionId, startPolling]);
 
-  const waitForPurchase = useCallback(() => {
-    awaitingPurchaseRef.current = true;
+  const waitForPurchase = useCallback((indices: number[]) => {
+    awaitedIndicesRef.current = indices;
     setAwaitingPurchase(true);
     if (sessionId && !intervalRef.current) {
       startPolling(sessionId);
     }
   }, [sessionId, startPolling]);
 
-  return { status, imageUrls, purchased, awaitingPurchase, generatingMore, error, isPolling, triggerPoll, waitForPurchase };
+  const isImagePurchased = useCallback(
+    (index: number) => purchasedIndices.includes(index),
+    [purchasedIndices]
+  );
+
+  return {
+    status,
+    imageUrls,
+    purchasedIndices,
+    awaitingPurchase,
+    generatingMore,
+    error,
+    isPolling,
+    triggerPoll,
+    waitForPurchase,
+    isImagePurchased,
+  };
 }

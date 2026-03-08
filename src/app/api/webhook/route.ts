@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { markSessionPurchased } from "@/lib/session";
+import { markImagesPurchased } from "@/lib/session";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
@@ -26,11 +26,27 @@ export async function POST(request: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const checkoutSession = event.data.object as Stripe.Checkout.Session;
-    const sessionId = checkoutSession.metadata?.sessionId;
+    const cartItemsStr = checkoutSession.metadata?.cartItems;
 
-    if (sessionId) {
-      markSessionPurchased(sessionId, checkoutSession.id);
-      console.log(`Session ${sessionId} marked as purchased`);
+    if (cartItemsStr) {
+      try {
+        const cartItems = JSON.parse(cartItemsStr) as Array<{ s: string; i: number }>;
+
+        // Group by sessionId
+        const grouped = new Map<string, number[]>();
+        for (const item of cartItems) {
+          const existing = grouped.get(item.s) || [];
+          existing.push(item.i);
+          grouped.set(item.s, existing);
+        }
+
+        for (const [sessionId, indices] of grouped) {
+          markImagesPurchased(sessionId, indices, checkoutSession.id);
+          console.log(`Session ${sessionId}: marked images [${indices.join(",")}] as purchased`);
+        }
+      } catch (err) {
+        console.error("Failed to parse cartItems metadata:", err);
+      }
     }
   }
 

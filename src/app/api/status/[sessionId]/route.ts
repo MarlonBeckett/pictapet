@@ -12,10 +12,15 @@ export async function GET(
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
+  const purchasedIndices =
+    process.env.BYPASS_PURCHASE === "true"
+      ? Array.from({ length: session.imageUrls.length }, (_, i) => i)
+      : session.purchasedIndices;
+
   return NextResponse.json({
     status: session.status,
     imageUrls: session.imageUrls,
-    purchased: process.env.BYPASS_PURCHASE === "true" ? true : session.purchased,
+    purchasedIndices,
     generatingMore: session.generatingMore ?? false,
     error: session.error,
   });

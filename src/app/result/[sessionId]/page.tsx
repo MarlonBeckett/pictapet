@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useGenerationStatus } from "@/hooks/use-generation-status";
+import { useCart } from "@/contexts/cart-context";
 import { LoadingAnimation } from "@/components/loading-animation";
 import { ResultGallery } from "@/components/result-gallery";
 import { DownloadShare } from "@/components/download-share";
@@ -16,15 +17,21 @@ export default function ResultPage() {
   const searchParams = useSearchParams();
   const sessionId = params.sessionId as string;
   const purchasedParam = searchParams.get("purchased") === "true";
-  const { status, imageUrls, purchased, awaitingPurchase, generatingMore, error, waitForPurchase } = useGenerationStatus(sessionId);
+  const { status, imageUrls, purchasedIndices, awaitingPurchase, generatingMore, error, waitForPurchase } = useGenerationStatus(sessionId);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const { addToCart, isInCart } = useCart();
 
   // If redirected back from Stripe, poll until webhook confirms purchase
   useEffect(() => {
-    if (purchasedParam && !purchased) {
-      waitForPurchase();
+    if (purchasedParam) {
+      const unpurchased = imageUrls
+        .map((_, i) => i)
+        .filter((i) => !purchasedIndices.includes(i));
+      if (unpurchased.length > 0) {
+        waitForPurchase(unpurchased);
+      }
     }
-  }, [purchasedParam, purchased, waitForPurchase]);
+  }, [purchasedParam, purchasedIndices, imageUrls, waitForPurchase]);
 
   const handleStartOver = () => {
     window.location.href = "/";
@@ -41,6 +48,42 @@ export default function ResultPage() {
       return next;
     });
   }, []);
+
+  const handleAddToCart = useCallback((index: number) => {
+    addToCart({
+      sessionId,
+      imageIndex: index,
+      imageUrl: imageUrls[index],
+      themeName: "Portrait",
+    });
+  }, [sessionId, imageUrls, addToCart]);
+
+  const handleBuyNow = useCallback(async (index: number) => {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: [{ sessionId, imageIndex: index }],
+      }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  }, [sessionId]);
+
+  const handleAddAllToCart = useCallback(() => {
+    imageUrls.forEach((url, i) => {
+      if (!purchasedIndices.includes(i)) {
+        addToCart({
+          sessionId,
+          imageIndex: i,
+          imageUrl: url,
+          themeName: "Portrait",
+        });
+      }
+    });
+  }, [sessionId, imageUrls, purchasedIndices, addToCart]);
 
   return (
     <>
@@ -82,7 +125,7 @@ export default function ResultPage() {
               </h2>
             </motion.div>
 
-            {awaitingPurchase && !purchased && (
+            {awaitingPurchase && purchasedIndices.length === 0 && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -100,14 +143,19 @@ export default function ResultPage() {
               generatingMore={generatingMore}
               selectedIndices={selectedIndices}
               onToggleSelect={handleToggleSelect}
-              purchased={purchased}
+              purchasedIndices={purchasedIndices}
+              sessionId={sessionId}
+              onAddToCart={handleAddToCart}
+              onBuyNow={handleBuyNow}
+              isInCart={(index) => isInCart(sessionId, index)}
             />
             <DownloadShare
               imageUrls={imageUrls}
               selectedIndices={selectedIndices}
               onStartOver={handleStartOver}
-              purchased={purchased}
+              purchasedIndices={purchasedIndices}
               sessionId={sessionId}
+              onAddAllToCart={handleAddAllToCart}
             />
           </div>
         </main>

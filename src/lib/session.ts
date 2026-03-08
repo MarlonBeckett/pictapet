@@ -11,7 +11,8 @@ export function createSession(style: StyleTheme, subRole?: string): GenerationSe
     subRole,
     imageUrls: [],
     originalImagePaths: [],
-    purchased: false,
+    purchasedIndices: [],
+    stripeSessionIds: [],
     createdAt: Date.now(),
   };
   sessions.set(session.id, session);
@@ -24,7 +25,7 @@ export function getSession(id: string): GenerationSession | undefined {
 
 export function updateSession(
   id: string,
-  updates: Partial<Pick<GenerationSession, "status" | "petAnalysis" | "imageUrls" | "generatingMore" | "originalPhotoBase64" | "originalPhotoMimeType" | "error">>
+  updates: Partial<Pick<GenerationSession, "status" | "petAnalysis" | "imageUrls" | "purchasedIndices" | "generatingMore" | "originalPhotoBase64" | "originalPhotoMimeType" | "error">>
 ): void {
   const session = sessions.get(id);
   if (session) {
@@ -53,12 +54,21 @@ export function addImageAndOriginalToSession(
   }
 }
 
-export function markSessionPurchased(id: string, stripeSessionId: string): void {
+export function markImagesPurchased(id: string, indices: number[], stripeSessionId: string): void {
   const session = sessions.get(id);
   if (session) {
-    session.purchased = true;
-    session.stripeSessionId = stripeSessionId;
+    const existing = new Set(session.purchasedIndices);
+    for (const idx of indices) {
+      existing.add(idx);
+    }
+    session.purchasedIndices = Array.from(existing);
+    session.stripeSessionIds.push(stripeSessionId);
   }
+}
+
+export function isImagePurchased(id: string, index: number): boolean {
+  const session = sessions.get(id);
+  return session?.purchasedIndices.includes(index) ?? false;
 }
 
 export function setSessionStatus(id: string, status: SessionStatus): void {

@@ -14,6 +14,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { useUpload } from "@/hooks/use-upload";
 import { useGenerationStatus } from "@/hooks/use-generation-status";
+import { useCart } from "@/contexts/cart-context";
 import { motion, AnimatePresence } from "framer-motion";
 
 type AppStep = "upload" | "loading" | "result";
@@ -33,9 +34,11 @@ export default function ThemePage() {
     theme?.subRoles[0]?.id ?? ""
   );
 
-  const { status, imageUrls, purchased, generatingMore, error: genError, triggerPoll, waitForPurchase } = useGenerationStatus(
+  const { status, imageUrls, purchasedIndices, generatingMore, error: genError, triggerPoll } = useGenerationStatus(
     step === "loading" || step === "result" ? sessionId : null
   );
+
+  const { addToCart, isInCart } = useCart();
 
   if (!theme) {
     notFound();
@@ -105,6 +108,45 @@ export default function ThemePage() {
       return next;
     });
   }, []);
+
+  const handleAddToCart = useCallback((index: number) => {
+    if (!sessionId) return;
+    addToCart({
+      sessionId,
+      imageIndex: index,
+      imageUrl: imageUrls[index],
+      themeName: theme.name,
+    });
+  }, [sessionId, imageUrls, theme.name, addToCart]);
+
+  const handleBuyNow = useCallback(async (index: number) => {
+    if (!sessionId) return;
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: [{ sessionId, imageIndex: index }],
+      }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  }, [sessionId]);
+
+  const handleAddAllToCart = useCallback(() => {
+    if (!sessionId) return;
+    imageUrls.forEach((url, i) => {
+      if (!purchasedIndices.includes(i)) {
+        addToCart({
+          sessionId,
+          imageIndex: i,
+          imageUrl: url,
+          themeName: theme.name,
+        });
+      }
+    });
+  }, [sessionId, imageUrls, purchasedIndices, theme.name, addToCart]);
 
   const handleStartOver = () => {
     clearUpload();
@@ -278,7 +320,11 @@ export default function ThemePage() {
                   generatingMore={generatingMore}
                   selectedIndices={selectedIndices}
                   onToggleSelect={handleToggleSelect}
-                  purchased={purchased}
+                  purchasedIndices={purchasedIndices}
+                  sessionId={sessionId!}
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
+                  isInCart={(index) => isInCart(sessionId!, index)}
                 />
                 <DownloadShare
                   imageUrls={imageUrls}
@@ -286,8 +332,9 @@ export default function ThemePage() {
                   onStartOver={handleStartOver}
                   onGenerateAnother={handleGenerateAnother}
                   generatingMore={generatingMore}
-                  purchased={purchased}
+                  purchasedIndices={purchasedIndices}
                   sessionId={sessionId!}
+                  onAddAllToCart={handleAddAllToCart}
                 />
               </motion.div>
             )}
