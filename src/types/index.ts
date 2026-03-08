@@ -1,4 +1,4 @@
-export type StyleTheme = "royal" | "cowboy" | "beach";
+export type StyleTheme = "royal" | "cowboy" | "beach" | "portrait";
 
 export interface StyleThemeConfig {
   id: StyleTheme;

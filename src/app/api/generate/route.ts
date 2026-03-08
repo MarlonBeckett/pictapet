@@ -11,7 +11,7 @@ import { THEMES } from "@/lib/themes";
 
 export const maxDuration = 60;
 
-const VALID_STYLES: StyleTheme[] = ["royal", "cowboy", "beach"];
+const VALID_STYLES: StyleTheme[] = ["royal", "cowboy", "beach", "portrait"];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 

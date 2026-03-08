@@ -179,6 +179,51 @@ export const THEMES: Record<StyleTheme, SiteTheme> = {
         "A joyful portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. Dressed as a hula dancer wearing a green grass skirt, a colorful lei of plumeria and hibiscus flowers around the neck, a flower crown, and coconut shell accessories. The pet has {expression} and {distinguishingFeatures}. Lush Hawaiian beach backdrop with tiki torches, swaying palm trees, a gentle sunset, and soft ocean waves lapping the shore. Bright, festive digital illustration style with warm tropical sunset light, vivid floral colors, and a relaxed island atmosphere.",
     },
   },
+  portrait: {
+    id: "portrait",
+    name: "Portrait",
+    tagline: "A timeless portrait of your best friend",
+    emoji: "🎨",
+    colors: {
+      bg: "#1a1a1a",
+      bgAlt: "#252525",
+      border: "#3a3a3a",
+      text: "#f0ece4",
+      textMuted: "#9a9590",
+      accent: "#c9a55a",
+      accentLight: "#d4b978",
+      error: "#c45c4a",
+    },
+    displayFont: "'Cormorant Garamond', serif",
+    copy: {
+      heroLabel: "PictaPet Portrait",
+      heroHeading: 'A Portrait of<br /><em>Your Pet</em>',
+      heroSubtext: "No costumes. No props. Just your pet, beautifully painted in the style you choose.",
+      uploadLabel: "Drop your pet's photo here",
+      generateButton: "Paint My Pet",
+      loadingSteps: ["Studying the subject", "Mixing the palette", "Applying the final brushstrokes"],
+      resultLabel: "Freshly painted",
+      resultHeading: "A Portrait Worth Framing",
+    },
+    promptTemplate:
+      "A beautiful modern painted portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The pet is posed naturally, facing the viewer in a vertical portrait composition framed from chest level up. No costume, no props, no themed setting. The pet has {expression} and {distinguishingFeatures}. Soft neutral studio background with gentle warm lighting. Classical oil painting style with visible brushstrokes, elegant warm tones, and refined painterly textures.",
+    subRoles: [
+      { id: "classic", name: "Classic", emoji: "🖼️", description: "Traditional painted portrait", generateButton: "Paint My Pet" },
+      { id: "watercolor", name: "Watercolor", emoji: "💧", description: "Soft watercolor style", generateButton: "Paint My Pet" },
+      { id: "pop-art", name: "Pop Art", emoji: "🎨", description: "Bold, colorful pop-art style", generateButton: "Paint My Pet" },
+      { id: "pencil", name: "Pencil", emoji: "✏️", description: "Detailed pencil sketch", generateButton: "Paint My Pet" },
+    ],
+    subRolePrompts: {
+      classic:
+        "A beautiful modern painted portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The pet is posed naturally, facing the viewer in a vertical portrait composition framed from chest level up. No costume, no props, no themed setting. The pet has {expression} and {distinguishingFeatures}. Soft neutral studio background with gentle warm lighting. Classical oil painting style with visible brushstrokes, elegant warm tones, rich shadows, and refined painterly textures reminiscent of old masters.",
+      watercolor:
+        "A beautiful watercolor portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The pet is posed naturally, facing the viewer in a vertical portrait composition framed from chest level up. No costume, no props, no themed setting. The pet has {expression} and {distinguishingFeatures}. Soft white background with subtle color bleeds at the edges. Delicate watercolor painting style with translucent washes, soft wet-on-wet blending, visible paper texture, and gentle flowing pigment. Light, airy, and ethereal feel.",
+      "pop-art":
+        "A bold pop-art portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The pet is posed naturally, facing the viewer in a vertical portrait composition framed from chest level up. No costume, no props, no themed setting. The pet has {expression} and {distinguishingFeatures}. Flat vibrant color background. Bold Andy Warhol inspired pop-art style with high contrast, vivid saturated colors, thick black outlines, halftone dot patterns, and a graphic screen-printed look.",
+      pencil:
+        "A detailed pencil drawing portrait of a {species} ({breed}) with {coloring} {furTexture} fur, {bodyProportions} build, {faceShape} face, {earDetails} ears, {eyeDetails} eyes, and {noseDetails} nose. The pet is posed naturally, facing the viewer in a vertical portrait composition framed from chest level up. No costume, no props, no themed setting. The pet has {expression} and {distinguishingFeatures}. Clean white paper background. Highly detailed graphite pencil sketch with fine crosshatching, delicate shading, precise fur texture rendering, and realistic tonal values. Photorealistic pencil drawing style.",
+    },
+  },
 };
 
 export const THEME_LIST = Object.values(THEMES);

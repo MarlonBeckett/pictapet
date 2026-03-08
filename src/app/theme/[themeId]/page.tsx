@@ -23,7 +23,7 @@ export default function ThemePage() {
   const themeId = params.themeId as string;
   const theme = getTheme(themeId);
 
-  const { file, preview, error: uploadError, handleFile, clear: clearUpload } = useUpload();
+  const { file, preview, error: uploadError, converting, handleFile, clear: clearUpload } = useUpload();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [step, setStep] = useState<AppStep>("upload");
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -183,6 +183,7 @@ export default function ThemePage() {
                   <UploadZone
                     preview={preview}
                     error={uploadError}
+                    converting={converting}
                     onFile={handleFile}
                     onClear={clearUpload}
                   />

@@ -77,8 +77,17 @@ export function useGenerationStatus(sessionId: string | null): GenerationStatus 
 
   // Start polling when sessionId changes (initial generation)
   useEffect(() => {
+    stopPolling();
+
     if (!sessionId) {
-      stopPolling();
+      // Reset all state so stale values don't cause issues on next generation
+      setStatus(null);
+      setError(null);
+      setImageUrls([]);
+      setPurchased(false);
+      setAwaitingPurchase(false);
+      awaitingPurchaseRef.current = false;
+      setGeneratingMore(false);
       return;
     }
 

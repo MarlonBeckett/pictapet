@@ -25,6 +25,7 @@ export function useUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [converting, setConverting] = useState(false);
 
   const handleFile = useCallback((acceptedFile: File) => {
     setError(null);
@@ -43,14 +44,17 @@ export function useUpload() {
 
     if (isHeicFile(acceptedFile)) {
       // Browsers can't display HEIC — convert to JPEG for preview
+      setConverting(true);
       import("heic2any").then(({ default: heic2any }) => heic2any({ blob: acceptedFile, toType: "image/jpeg", quality: 0.8 }))
         .then((result) => {
           const blob = Array.isArray(result) ? result[0] : result;
           setPreview(URL.createObjectURL(blob));
+          setConverting(false);
         })
         .catch(() => {
           // Fallback: try objectURL anyway (some browsers may support it)
           setPreview(URL.createObjectURL(acceptedFile));
+          setConverting(false);
         });
     } else {
       setPreview(URL.createObjectURL(acceptedFile));
@@ -64,5 +68,5 @@ export function useUpload() {
     setError(null);
   }, [preview]);
 
-  return { file, preview, error, handleFile, clear };
+  return { file, preview, error, converting, handleFile, clear };
 }

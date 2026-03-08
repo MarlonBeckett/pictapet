@@ -9,11 +9,12 @@ import Image from "next/image";
 interface UploadZoneProps {
   preview: string | null;
   error: string | null;
+  converting?: boolean;
   onFile: (file: File) => void;
   onClear: () => void;
 }
 
-export function UploadZone({ preview, error, onFile, onClear }: UploadZoneProps) {
+export function UploadZone({ preview, error, converting, onFile, onClear }: UploadZoneProps) {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
@@ -35,7 +36,28 @@ export function UploadZone({ preview, error, onFile, onClear }: UploadZoneProps)
   return (
     <div className="w-full max-w-md mx-auto">
       <AnimatePresence mode="wait">
-        {preview ? (
+        {converting && !preview ? (
+          <motion.div
+            key="converting"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="relative border border-dashed border-[var(--color-charcoal-light)] aspect-square flex flex-col items-center justify-center bg-[var(--color-charcoal)]/30"
+          >
+            {/* Corner accents */}
+            <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-[var(--color-gold)]/40" />
+            <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-[var(--color-gold)]/40" />
+            <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-[var(--color-gold)]/40" />
+            <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-[var(--color-gold)]/40" />
+
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-8 h-8 border-2 border-[var(--color-gold)]/60 border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-[var(--color-warm-gray)] tracking-wide">
+                Converting image…
+              </p>
+            </div>
+          </motion.div>
+        ) : preview ? (
           <motion.div
             key="preview"
             initial={{ opacity: 0, scale: 0.97 }}
