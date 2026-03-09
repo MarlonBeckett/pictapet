@@ -28,10 +28,15 @@ export async function GET(
     return NextResponse.json({ error: "Image not found" }, { status: 404 });
   }
 
+  const inline = searchParams.get("inline") === "true";
+  const disposition = inline
+    ? "inline"
+    : `attachment; filename="pictapet-portrait-${index + 1}.png"`;
+
   return new NextResponse(new Uint8Array(imageBuffer), {
     headers: {
       "Content-Type": "image/png",
-      "Content-Disposition": `attachment; filename="pictapet-portrait-${index + 1}.png"`,
+      "Content-Disposition": disposition,
     },
   });
 }

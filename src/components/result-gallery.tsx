@@ -37,7 +37,14 @@ export function ResultGallery({
     }
   }, [imageUrls.length]);
 
-  const featuredUrl = imageUrls[featuredIndex];
+  const getDisplayUrl = (index: number) => {
+    if (purchasedIndices.includes(index)) {
+      return `/api/download/${sessionId}?index=${index}&inline=true`;
+    }
+    return imageUrls[index];
+  };
+
+  const featuredUrl = getDisplayUrl(featuredIndex);
   const isFeaturedPurchased = purchasedIndices.includes(featuredIndex);
   const isFeaturedInCart = isInCart(featuredIndex);
 
@@ -61,7 +68,7 @@ export function ResultGallery({
         <div className="relative">
           <AnimatePresence mode="wait">
             <motion.div
-              key={featuredUrl}
+              key={`${featuredIndex}-${isFeaturedPurchased}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -150,9 +157,10 @@ export function ResultGallery({
           {imageUrls.map((url, i) => {
             const isPurchased = purchasedIndices.includes(i);
             const inCart = isInCart(i);
+            const thumbUrl = getDisplayUrl(i);
             return (
               <button
-                key={url}
+                key={`${i}-${isPurchased}`}
                 onClick={() => setFeaturedIndex(i)}
                 className={`relative w-12 aspect-[9/16] overflow-hidden border-2 transition-all duration-200 cursor-pointer group ${
                   i === featuredIndex
@@ -161,7 +169,7 @@ export function ResultGallery({
                 }`}
               >
                 <Image
-                  src={url}
+                  src={thumbUrl}
                   alt={`Portrait ${i + 1}`}
                   fill
                   className="object-cover"
