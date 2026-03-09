@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const heicConvert = require("heic-convert");
 import { createSession, updateSession, setSessionError } from "@/lib/session";
@@ -59,11 +60,13 @@ export async function POST(request: NextRequest) {
 
     const session = await createSession(style, subRole || undefined);
 
-    // Run pipeline async (don't await)
-    runPipeline(session.id, file, style, detectedMimeType, subRole || undefined).catch((err) => {
-      console.error(`Pipeline error for session ${session.id}:`, err);
-      setSessionError(session.id, "Generation failed. Please try again.");
-    });
+    // Use after() to keep the serverless function alive for the pipeline
+    after(
+      runPipeline(session.id, file, style, detectedMimeType, subRole || undefined).catch((err) => {
+        console.error(`Pipeline error for session ${session.id}:`, err);
+        setSessionError(session.id, "Generation failed. Please try again.");
+      })
+    );
 
     return NextResponse.json({ sessionId: session.id });
   } catch (error) {

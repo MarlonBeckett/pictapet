@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { getSession, updateSession, addImageAndOriginalToSession } from "@/lib/session";
 import { buildPrompt } from "@/lib/prompt-engine";
 import { generateImage } from "@/lib/image-gen";
@@ -37,11 +37,13 @@ export async function POST(
 
   await updateSession(sessionId, { generatingMore: true });
 
-  // Run generation async
-  regenerate(sessionId).catch((err) => {
-    console.error(`Regenerate error for session ${sessionId}:`, err);
-    updateSession(sessionId, { generatingMore: false, error: "Generation failed. Please try again." });
-  });
+  // Use after() to keep the serverless function alive for the pipeline
+  after(
+    regenerate(sessionId).catch((err) => {
+      console.error(`Regenerate error for session ${sessionId}:`, err);
+      updateSession(sessionId, { generatingMore: false, error: "Generation failed. Please try again." });
+    })
+  );
 
   return NextResponse.json({ ok: true });
 }
