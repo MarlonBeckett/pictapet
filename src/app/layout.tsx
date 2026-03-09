@@ -12,6 +12,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://pictapet.com"),
   title: "PictaPet — Portraits Worthy of a Frame",
   description:
     "Upload your pet's photo. Choose a theme. Receive a museum-quality AI portrait.",
@@ -19,6 +20,13 @@ export const metadata: Metadata = {
     title: "PictaPet — Portraits Worthy of a Frame",
     description: "Upload your pet's photo. Choose a theme. Receive a museum-quality AI portrait.",
     type: "website",
+    siteName: "PictaPet",
+    url: "https://pictapet.com",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PictaPet — Portraits Worthy of a Frame",
+    description: "Upload your pet's photo. Choose a theme. Receive a museum-quality AI portrait.",
   },
 };
 
