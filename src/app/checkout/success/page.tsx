@@ -113,15 +113,17 @@ function SuccessContent() {
     }
   }, [sessionIds, sessions, downloadOriginal]);
 
-  // Collect all purchased images for display
+  // Collect all purchased images for display — use unwatermarked download endpoint
   const allImages: { sessionId: string; index: number; url: string }[] = [];
   for (const sid of sessionIds) {
     const data = sessions[sid];
     if (!data?.confirmed) continue;
     for (const idx of data.purchasedIndices) {
-      if (data.imageUrls[idx]) {
-        allImages.push({ sessionId: sid, index: idx, url: data.imageUrls[idx] });
-      }
+      allImages.push({
+        sessionId: sid,
+        index: idx,
+        url: `/api/download/${sid}?index=${idx}&inline=true`,
+      });
     }
   }
 
@@ -230,7 +232,7 @@ function SuccessContent() {
             <img
               src={url}
               alt={`Portrait ${index + 1}`}
-              className="w-full aspect-square object-cover border border-[var(--color-charcoal-light)]"
+              className="w-full aspect-[9/16] object-cover border border-[var(--color-charcoal-light)]"
             />
             <button
               onClick={() => downloadOriginal(sessionId, index)}
