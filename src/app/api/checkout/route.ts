@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     const checkoutSession = await getStripe().checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
+      allow_promotion_codes: true,
       line_items: items.map((item, idx) => ({
         price_data: {
           currency: "usd",
