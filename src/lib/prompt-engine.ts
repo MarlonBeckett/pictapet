@@ -33,10 +33,14 @@ export function buildPrompt(style: StyleTheme, analysis: PetAnalysis, subRole?: 
     : "The animal must be posed naturally as an animal (sitting, standing, or lying on all fours) with costume elements draped, placed, or fitted onto its natural animal body.";
 
   // Add fidelity + style instruction block
+  const oilPaintingRule = style === "beach"
+    ? "" // Beach theme has its own style instructions in subRole prompts
+    : "IMPORTANT STYLE RULES: Render as a classical oil painting portrait with visible brushstrokes, rich painted textures, and warm artistic lighting. NOT a photograph, NOT hyper-realistic, NOT a cartoon. ";
+
   prompt +=
     " Use the reference photo ONLY to match this specific animal's face, coloring, markings, fur, and physical features exactly — do NOT substitute generic breed features. " +
     "CRITICAL: Completely IGNORE the background, setting, surface, furniture, bedding, and environment from the reference photo. Only extract the animal itself. Replace the entire environment with the theme-appropriate scene described in this prompt. " +
-    "IMPORTANT STYLE RULES: Render as a classical oil painting portrait with visible brushstrokes, rich painted textures, and warm artistic lighting. NOT a photograph, NOT hyper-realistic, NOT a cartoon. " +
+    oilPaintingRule +
     poseInstruction + " " +
     "Do NOT pose the animal like a human sitting upright in a chair or standing on two legs. " +
     "Do NOT include any picture frame, border, or ornate frame around the image. " +
