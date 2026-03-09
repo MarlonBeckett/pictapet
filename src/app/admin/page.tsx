@@ -118,7 +118,8 @@ export default function AdminPage() {
     abortRef.current = false;
 
     const queue = [...jobList.filter(j => j.status === "pending" || j.status === "failed")];
-    const CONCURRENCY = 3;
+    const CONCURRENCY = 2;
+    const STAGGER_DELAY_MS = 500;
     let active = 0;
     let idx = 0;
 
@@ -128,8 +129,10 @@ export default function AdminPage() {
       ));
     };
 
+    const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+
     await new Promise<void>((resolve) => {
-      const runNext = () => {
+      const runNext = async () => {
         if (abortRef.current) {
           if (active === 0) resolve();
           return;
@@ -140,13 +143,19 @@ export default function AdminPage() {
           active++;
           updateJob(job.theme, job.subRole, { status: "generating" });
 
+          // Stagger concurrent requests to avoid burst rate limiting
+          if (active > 1) await delay(STAGGER_DELAY_MS);
+
           fetch(`/api/admin/batch/${currentBatchId}/generate`, {
             method: "POST",
             headers: { ...authHeaders(), "Content-Type": "application/json" },
             body: JSON.stringify({ theme: job.theme, subRole: job.subRole }),
           })
             .then(async (res) => {
-              if (!res.ok) throw new Error("Generation failed");
+              if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || `Generation failed (${res.status})`);
+              }
               const data = await res.json();
               updateJob(job.theme, job.subRole, {
                 status: "done",
@@ -205,6 +214,19 @@ export default function AdminPage() {
 
       // Immediately start generation
       await runGenerationQueue(newBatchId, newJobs);
+
+      // Auto-retry failed jobs once after a short delay
+      const failedJobs = await new Promise<Job[]>((resolve) => {
+        setJobs(prev => {
+          resolve(prev.filter(j => j.status === "failed"));
+          return prev;
+        });
+      });
+      if (failedJobs.length > 0 && !abortRef.current) {
+        console.log(`[admin] Auto-retrying ${failedJobs.length} failed jobs...`);
+        await new Promise<void>(r => setTimeout(r, 3000));
+        await runGenerationQueue(newBatchId, failedJobs.map(j => ({ ...j, status: "failed" as JobStatus })));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
       setAnalyzing(false);
@@ -420,6 +442,7 @@ export default function AdminPage() {
                               <div className="text-center p-3">
                                 <span className="text-xs text-red-400">Failed</span>
                                 <p className="text-xs text-zinc-600 mt-1">{job.subRoleName}</p>
+                                {job.error && <p className="text-xs text-red-400/70 mt-1 break-words">{job.error}</p>}
                               </div>
                             ) : (
                               <div className="text-center">

@@ -64,6 +64,12 @@ export async function POST(
       subRole,
       error: error instanceof Error ? error.message : "Unknown error",
     });
-    return NextResponse.json({ error: "Generation failed" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorType = errorMessage.toLowerCase().includes("rate limit") || errorMessage.includes("429")
+      ? "rate_limit"
+      : errorMessage.toLowerCase().includes("timeout")
+      ? "timeout"
+      : "generation_error";
+    return NextResponse.json({ error: errorMessage, errorType }, { status: 500 });
   }
 }
